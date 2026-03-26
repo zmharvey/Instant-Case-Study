@@ -10,8 +10,8 @@ from pydantic import BaseModel
 
 from api.db import get_db
 from api.routes.auth import require_user
+from api import db as db_module
 from api import worker as worker_module
-from api.db import _pool
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -69,7 +69,7 @@ async def create_job(
     )
 
     # Fire and forget — worker updates the row when done
-    asyncio.create_task(worker_module.run_job(job_id, body.repo_url, _pool))
+    asyncio.create_task(worker_module.run_job(job_id, body.repo_url, db_module._pool))
 
     return _row_to_response(row)
 
