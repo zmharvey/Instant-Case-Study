@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "instant-case-study"
+version = "0.1.0"
+description = "Generate case study and LinkedIn post PDFs from a GitHub repository"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.40.0",
+    "typer[all]>=0.12.0",
+    "gitpython>=3.1.40",
+    "playwright>=1.40.0",
+    "jinja2>=3.1.0",
+    "markdown>=3.6",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+]
+
+[project.scripts]
+case-study = "instant_case_study.main:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["instant_case_study"]

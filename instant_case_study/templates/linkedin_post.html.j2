@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ repo_name }} — LinkedIn Post</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f3f2ef;
+      margin: 0;
+      padding: 48px 32px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* LinkedIn card */
+    .card {
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #e0dfdc;
+      width: 100%;
+      max-width: 555px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    /* Card header — simulated LinkedIn profile area */
+    .card-header {
+      padding: 16px 16px 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      border-bottom: 1px solid #f3f2ef;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-initials {
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: 0.02em;
+    }
+
+    .profile-info {
+      flex: 1;
+    }
+
+    .profile-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #191919;
+      line-height: 1.3;
+    }
+
+    .profile-title {
+      font-size: 12px;
+      color: #666666;
+      line-height: 1.4;
+      margin-top: 1px;
+    }
+
+    .post-time {
+      font-size: 11px;
+      color: #999999;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .globe-icon {
+      width: 12px;
+      height: 12px;
+      fill: #999999;
+    }
+
+    /* Post body */
+    .card-body {
+      padding: 12px 16px 8px 16px;
+    }
+
+    .post-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #191919;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Card actions bar */
+    .card-actions {
+      padding: 4px 16px 12px 16px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .action-pill {
+      font-size: 12px;
+      font-weight: 600;
+      color: #666666;
+      padding: 8px 12px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-pill svg {
+      width: 16px;
+      height: 16px;
+      fill: #666666;
+    }
+
+    /* Metadata footer below card */
+    .meta-footer {
+      max-width: 555px;
+      width: 100%;
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .char-count {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .char-count .count {
+      font-weight: 700;
+      color: {% if char_count > 1300 %}#ef4444{% elif char_count > 1100 %}#f59e0b{% else %}#10b981{% endif %};
+    }
+
+    .pulse-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6366f1;
+    }
+
+    /* LinkedIn reaction bar decoration */
+    .reactions-bar {
+      padding: 8px 16px;
+      border-top: 1px solid #f3f2ef;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .reactions-left {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .reaction-emoji {
+      font-size: 14px;
+    }
+
+    .reaction-count {
+      font-size: 12px;
+      color: #666666;
+    }
+
+    .comments-count {
+      font-size: 12px;
+      color: #666666;
+    }
+  </style>
+</head>
+<body>
+  <div class="label">LinkedIn Post Draft &mdash; {{ repo_name }}</div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="avatar">
+        <span class="avatar-initials">PM</span>
+      </div>
+      <div class="profile-info">
+        <div class="profile-name">Zach Harvey</div>
+        <div class="profile-title">AI-Assisted Creative at Scale</div>
+        <div class="post-time">
+          <svg class="globe-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+          </svg>
+          Just now &bull; <span>&#x1F310;</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="post-text">{{ post_text }}</div>
+    </div>
+
+    <div class="reactions-bar">
+      <div class="reactions-left">
+        <span class="reaction-emoji">👍</span>
+        <span class="reaction-emoji">❤️</span>
+        <span class="reaction-emoji">🎉</span>
+        <span class="reaction-count">&nbsp;Be the first to react</span>
+      </div>
+      <div class="comments-count">0 comments</div>
+    </div>
+
+    <div class="card-actions">
+      <div class="action-pill">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 15l-6 6-1.42-1.42L15.17 16H4V4h2v10h9.17l-3.59-3.58L13 9l6 6z"/></svg>
+        Like
+      </div>
+      <div class="action-pill">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+        Comment
+      </div>
+      <div class="action-pill">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+        Share
+      </div>
+    </div>
+  </div>
+
+  <div class="meta-footer">
+    <span class="char-count">
+      <span class="count">{{ char_count }}</span> / 1,300 characters
+    </span>
+    <span class="pulse-tag">Zach Harvey</span>
+  </div>
+</body>
+</html>
