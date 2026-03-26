@@ -1,0 +1,43 @@
+import asyncio
+import os
+from concurrent.futures import ThreadPoolExecutor
+
+import asyncpg
+
+from instant_case_study import generator, parser, renderer
+
+_executor = ThreadPoolExecutor(max_workers=4)
+
+
+async def run_job(job_id: str, repo_url: str, pool: asyncpg.Pool) -> None:
+    loop = asyncio.get_event_loop()
+
+    async with pool.acquire() as conn:
+        await conn.execute("UPDATE jobs SET status='running' WHERE id=$1", job_id)
+
+    try:
+        context = await loop.run_in_executor(_executor, parser.ingest, repo_url)
+        content = await loop.run_in_executor(_executor, generator.generate, context)
+
+        out_dir = f"/data/jobs/{job_id}"
+        cs_path, li_path = await loop.run_in_executor(
+            _executor, renderer.render_all, content, out_dir
+        )
+
+        async with pool.acquire() as conn:
+            await conn.execute(
+                """UPDATE jobs
+                   SET status='done', repo_name=$2, cs_pdf_path=$3, li_pdf_path=$4, finished_at=now()
+                   WHERE id=$1""",
+                job_id,
+                content.repo_name,
+                cs_path,
+                li_path,
+            )
+    except Exception as e:
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE jobs SET status='failed', error_msg=$2 WHERE id=$1",
+                job_id,
+                str(e),
+            )

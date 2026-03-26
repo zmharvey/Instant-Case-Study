@@ -1,4 +1,7 @@
 .env
+.env.local
+**/.env
+**/.env.local
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -8,3 +11,6 @@ build/
 venv/
 output/
 *.pdf
+node_modules/
+.claude/
+install.bat
