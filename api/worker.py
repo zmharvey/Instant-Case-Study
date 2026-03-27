@@ -16,7 +16,7 @@ async def run_job(job_id: str, repo_url: str, pool: asyncpg.Pool) -> None:
 
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT display_name, company_name, target_audience, tone, positioning_blurb FROM jobs WHERE id=$1",
+            "SELECT display_name, company_name, target_audience, tone, positioning_blurb, case_study_style FROM jobs WHERE id=$1",
             job_id,
         )
         display_name = row["display_name"] if row else None
@@ -25,6 +25,7 @@ async def run_job(job_id: str, repo_url: str, pool: asyncpg.Pool) -> None:
             target_audience=row["target_audience"],
             tone=row["tone"],
             positioning_blurb=row["positioning_blurb"],
+            case_study_style=row["case_study_style"],
         ) if row else None
         await conn.execute("UPDATE jobs SET status='running' WHERE id=$1", job_id)
 

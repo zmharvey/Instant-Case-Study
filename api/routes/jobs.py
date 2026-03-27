@@ -19,6 +19,7 @@ GITHUB_URL_RE = re.compile(r"^https://github\.com/[^/]+/[^/]+")
 
 
 VALID_TONES = {"Professional", "Conversational", "Technical"}
+VALID_STYLES = {"consultant", "storyteller", "one_pager", "analyst"}
 
 
 class CreateJobRequest(BaseModel):
@@ -28,6 +29,7 @@ class CreateJobRequest(BaseModel):
     target_audience: str | None = None
     tone: str | None = None
     positioning_blurb: str | None = None
+    case_study_style: str | None = None
 
 
 class JobResponse(BaseModel):
@@ -43,6 +45,7 @@ class JobResponse(BaseModel):
     target_audience: str | None
     tone: str | None
     positioning_blurb: str | None
+    case_study_style: str | None
 
 
 def _row_to_response(row: asyncpg.Record) -> JobResponse:
@@ -59,6 +62,7 @@ def _row_to_response(row: asyncpg.Record) -> JobResponse:
         target_audience=row["target_audience"],
         tone=row["tone"],
         positioning_blurb=row["positioning_blurb"],
+        case_study_style=row["case_study_style"],
     )
 
 
@@ -80,10 +84,16 @@ async def create_job(
             detail=f"tone must be one of: {', '.join(sorted(VALID_TONES))}",
         )
 
+    if body.case_study_style and body.case_study_style not in VALID_STYLES:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"case_study_style must be one of: {', '.join(sorted(VALID_STYLES))}",
+        )
+
     job_id = str(uuid.uuid4())
     row = await db.fetchrow(
-        """INSERT INTO jobs (id, user_id, repo_url, display_name, company_name, target_audience, tone, positioning_blurb)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        """INSERT INTO jobs (id, user_id, repo_url, display_name, company_name, target_audience, tone, positioning_blurb, case_study_style)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
            RETURNING *""",
         job_id,
         user_id,
@@ -93,6 +103,7 @@ async def create_job(
         body.target_audience,
         body.tone,
         body.positioning_blurb,
+        body.case_study_style,
     )
 
     # Fire and forget — worker updates the row when done

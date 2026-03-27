@@ -1,5 +1,6 @@
 export type JobStatus = "pending" | "running" | "done" | "failed";
 export type JobTone = "Professional" | "Conversational" | "Technical";
+export type JobCaseStudyStyle = "consultant" | "storyteller" | "one_pager" | "analyst";
 
 export interface Job {
   id: string;
@@ -14,6 +15,7 @@ export interface Job {
   target_audience: string | null;
   tone: JobTone | null;
   positioning_blurb: string | null;
+  case_study_style: JobCaseStudyStyle | null;
 }
 
 export interface CreateJobOptions {
@@ -22,6 +24,7 @@ export interface CreateJobOptions {
   targetAudience?: string;
   tone?: JobTone;
   positioningBlurb?: string;
+  caseStudyStyle?: JobCaseStudyStyle;
 }
 
 async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
@@ -40,6 +43,7 @@ export async function createJob(repoUrl: string, options: CreateJobOptions = {})
       target_audience: options.targetAudience || null,
       tone: options.tone || null,
       positioning_blurb: options.positioningBlurb || null,
+      case_study_style: options.caseStudyStyle || null,
     }),
   });
   if (!res.ok) {

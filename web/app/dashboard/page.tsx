@@ -66,6 +66,7 @@ export default function DashboardPage() {
     const displayName = user?.fullName ?? user?.username ?? undefined;
     const newJob = await createJob(job.repo_url, {
       displayName,
+      caseStudyStyle: job.case_study_style ?? undefined,
       companyName: job.company_name ?? undefined,
       targetAudience: job.target_audience ?? undefined,
       tone: job.tone ?? undefined,

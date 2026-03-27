@@ -2,9 +2,16 @@
 
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { createJob, type Job, type JobTone } from "@/lib/api";
+import { createJob, type Job, type JobTone, type JobCaseStudyStyle } from "@/lib/api";
 
 const TONES: JobTone[] = ["Professional", "Conversational", "Technical"];
+
+const STYLES: { key: JobCaseStudyStyle; name: string; description: string }[] = [
+  { key: "consultant",  name: "The Consultant",   description: "Business-value-first, executive summary style" },
+  { key: "storyteller", name: "The Storyteller",  description: "Warm narrative with an editorial feel" },
+  { key: "one_pager",   name: "The One-Pager",    description: "Punchy, tight sales leave-behind" },
+  { key: "analyst",     name: "The Analyst",      description: "Metrics-first, data-driven precision" },
+];
 
 interface Props {
   onJobCreated: (job: Job) => void;
@@ -14,6 +21,7 @@ export default function GenerateForm({ onJobCreated }: Props) {
   const { user } = useUser();
   const [url, setUrl] = useState("");
   const [showOptions, setShowOptions] = useState(false);
+  const [caseStudyStyle, setCaseStudyStyle] = useState<JobCaseStudyStyle | null>(null);
   const [companyName, setCompanyName] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
   const [tone, setTone] = useState<JobTone | "">("");
@@ -35,6 +43,7 @@ export default function GenerateForm({ onJobCreated }: Props) {
       const displayName = user?.fullName ?? user?.username ?? undefined;
       const job = await createJob(url.trim(), {
         displayName,
+        caseStudyStyle: caseStudyStyle || undefined,
         companyName: companyName.trim() || undefined,
         targetAudience: targetAudience.trim() || undefined,
         tone: tone || undefined,
@@ -42,6 +51,7 @@ export default function GenerateForm({ onJobCreated }: Props) {
       });
       onJobCreated(job);
       setUrl("");
+      setCaseStudyStyle(null);
       setCompanyName("");
       setTargetAudience("");
       setTone("");
@@ -102,10 +112,40 @@ export default function GenerateForm({ onJobCreated }: Props) {
       </button>
 
       {showOptions && (
-        <div className="flex flex-col gap-3 bg-[#1e293b] border border-slate-700 rounded-lg p-4">
+        <div className="flex flex-col gap-4 bg-[#1e293b] border border-slate-700 rounded-lg p-4">
           <p className="text-slate-400 text-xs">
             Optional context to sharpen the AI-generated content.
           </p>
+
+          {/* Writing style selector */}
+          <div className="flex flex-col gap-2">
+            <label className="text-slate-300 text-xs font-medium">
+              Writing style <span className="text-slate-500 font-normal">(default if none selected)</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {STYLES.map((s) => {
+                const selected = caseStudyStyle === s.key;
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    disabled={loading}
+                    onClick={() => setCaseStudyStyle(selected ? null : s.key)}
+                    className={`text-left p-3 rounded-lg border transition-colors disabled:opacity-50 ${
+                      selected
+                        ? "border-indigo-500 bg-indigo-500/10 ring-1 ring-indigo-500"
+                        : "border-slate-600 bg-[#0f172a] hover:border-slate-500"
+                    }`}
+                  >
+                    <p className={`text-xs font-semibold ${selected ? "text-indigo-300" : "text-slate-200"}`}>
+                      {s.name}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5 leading-snug">{s.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">

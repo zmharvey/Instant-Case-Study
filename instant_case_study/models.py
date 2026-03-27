@@ -17,6 +17,7 @@ class UserContext(BaseModel):
     target_audience: Optional[str] = None
     tone: Optional[str] = None
     positioning_blurb: Optional[str] = None
+    case_study_style: Optional[str] = None
 
 
 class GeneratedContent(BaseModel):

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     target_audience   TEXT,
     tone              TEXT,
     positioning_blurb TEXT,
+    case_study_style  TEXT,
     status            TEXT NOT NULL DEFAULT 'pending',
     error_msg         TEXT,
     cs_pdf_path       TEXT,
@@ -22,8 +23,9 @@ CREATE INDEX IF NOT EXISTS idx_jobs_user_id ON jobs(user_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_status  ON jobs(status);
 
 -- Migration: add customization columns to existing deployments
-ALTER TABLE jobs ADD COLUMN IF NOT EXISTS display_name      TEXT;
-ALTER TABLE jobs ADD COLUMN IF NOT EXISTS company_name      TEXT;
-ALTER TABLE jobs ADD COLUMN IF NOT EXISTS target_audience   TEXT;
-ALTER TABLE jobs ADD COLUMN IF NOT EXISTS tone              TEXT;
-ALTER TABLE jobs ADD COLUMN IF NOT EXISTS positioning_blurb TEXT;
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS display_name       TEXT;
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS company_name       TEXT;
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS target_audience    TEXT;
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS tone               TEXT;
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS positioning_blurb  TEXT;
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS case_study_style   TEXT;
