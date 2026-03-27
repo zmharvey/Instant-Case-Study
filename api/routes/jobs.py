@@ -20,6 +20,7 @@ GITHUB_URL_RE = re.compile(r"^https://github\.com/[^/]+/[^/]+")
 
 class CreateJobRequest(BaseModel):
     repo_url: str
+    display_name: str | None = None
 
 
 class JobResponse(BaseModel):
@@ -60,12 +61,13 @@ async def create_job(
 
     job_id = str(uuid.uuid4())
     row = await db.fetchrow(
-        """INSERT INTO jobs (id, user_id, repo_url)
-           VALUES ($1, $2, $3)
+        """INSERT INTO jobs (id, user_id, repo_url, display_name)
+           VALUES ($1, $2, $3, $4)
            RETURNING *""",
         job_id,
         user_id,
         body.repo_url,
+        body.display_name,
     )
 
     # Fire and forget — worker updates the row when done

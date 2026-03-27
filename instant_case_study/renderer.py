@@ -11,10 +11,16 @@ from .models import GeneratedContent
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 
-def render_all(content: GeneratedContent, output_dir: str = "./output") -> tuple[str, str]:
+def render_all(
+    content: GeneratedContent,
+    output_dir: str = "./output",
+    display_name: str | None = None,
+) -> tuple[str, str]:
     """Render both PDFs and return (case_study_path, linkedin_post_path)."""
     os.makedirs(output_dir, exist_ok=True)
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
+
+    name = display_name or "Unknown"
 
     case_study_path = str(Path(output_dir) / "case_study.pdf")
     linkedin_path = str(Path(output_dir) / "linkedin_post.pdf")
@@ -27,6 +33,7 @@ def render_all(content: GeneratedContent, output_dir: str = "./output") -> tuple
     case_study_html = env.get_template("case_study.html.j2").render(
         repo_name=content.repo_name,
         body_html=body_html,
+        display_name=name,
     )
 
     post_text = content.linkedin_post_text
@@ -34,6 +41,7 @@ def render_all(content: GeneratedContent, output_dir: str = "./output") -> tuple
         repo_name=content.repo_name,
         post_text=post_text,
         char_count=len(post_text),
+        display_name=name,
     )
 
     with sync_playwright() as p:

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { createJob, type Job } from "@/lib/api";
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function GenerateForm({ onJobCreated }: Props) {
+  const { user } = useUser();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +25,8 @@ export default function GenerateForm({ onJobCreated }: Props) {
 
     setLoading(true);
     try {
-      const job = await createJob(url.trim());
+      const displayName = user?.fullName ?? user?.username ?? undefined;
+      const job = await createJob(url.trim(), displayName);
       onJobCreated(job);
       setUrl("");
     } catch (err) {

@@ -13,6 +13,8 @@ async def run_job(job_id: str, repo_url: str, pool: asyncpg.Pool) -> None:
     loop = asyncio.get_event_loop()
 
     async with pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT display_name FROM jobs WHERE id=$1", job_id)
+        display_name = row["display_name"] if row else None
         await conn.execute("UPDATE jobs SET status='running' WHERE id=$1", job_id)
 
     try:
@@ -21,7 +23,7 @@ async def run_job(job_id: str, repo_url: str, pool: asyncpg.Pool) -> None:
 
         out_dir = f"/data/jobs/{job_id}"
         cs_path, li_path = await loop.run_in_executor(
-            _executor, renderer.render_all, content, out_dir
+            _executor, renderer.render_all, content, out_dir, display_name
         )
 
         async with pool.acquire() as conn:

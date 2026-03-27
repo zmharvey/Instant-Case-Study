@@ -16,11 +16,11 @@ async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   return res;
 }
 
-export async function createJob(repoUrl: string): Promise<Job> {
+export async function createJob(repoUrl: string, displayName?: string): Promise<Job> {
   const res = await apiFetch("jobs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ repo_url: repoUrl }),
+    body: JSON.stringify({ repo_url: repoUrl, display_name: displayName }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Unknown error" }));
