@@ -18,9 +18,16 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 GITHUB_URL_RE = re.compile(r"^https://github\.com/[^/]+/[^/]+")
 
 
+VALID_TONES = {"Professional", "Conversational", "Technical"}
+
+
 class CreateJobRequest(BaseModel):
     repo_url: str
     display_name: str | None = None
+    company_name: str | None = None
+    target_audience: str | None = None
+    tone: str | None = None
+    positioning_blurb: str | None = None
 
 
 class JobResponse(BaseModel):
@@ -32,6 +39,10 @@ class JobResponse(BaseModel):
     error_msg: str | None
     created_at: str
     finished_at: str | None
+    company_name: str | None
+    target_audience: str | None
+    tone: str | None
+    positioning_blurb: str | None
 
 
 def _row_to_response(row: asyncpg.Record) -> JobResponse:
@@ -44,6 +55,10 @@ def _row_to_response(row: asyncpg.Record) -> JobResponse:
         error_msg=row["error_msg"],
         created_at=row["created_at"].isoformat(),
         finished_at=row["finished_at"].isoformat() if row["finished_at"] else None,
+        company_name=row["company_name"],
+        target_audience=row["target_audience"],
+        tone=row["tone"],
+        positioning_blurb=row["positioning_blurb"],
     )
 
 
@@ -59,15 +74,25 @@ async def create_job(
             detail="repo_url must be a valid GitHub HTTPS URL (https://github.com/owner/repo)",
         )
 
+    if body.tone and body.tone not in VALID_TONES:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"tone must be one of: {', '.join(sorted(VALID_TONES))}",
+        )
+
     job_id = str(uuid.uuid4())
     row = await db.fetchrow(
-        """INSERT INTO jobs (id, user_id, repo_url, display_name)
-           VALUES ($1, $2, $3, $4)
+        """INSERT INTO jobs (id, user_id, repo_url, display_name, company_name, target_audience, tone, positioning_blurb)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
            RETURNING *""",
         job_id,
         user_id,
         body.repo_url,
         body.display_name,
+        body.company_name,
+        body.target_audience,
+        body.tone,
+        body.positioning_blurb,
     )
 
     # Fire and forget — worker updates the row when done

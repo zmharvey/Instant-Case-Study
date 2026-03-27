@@ -12,6 +12,13 @@ class RepoContext(BaseModel):
     primary_language: Optional[str] = None
 
 
+class UserContext(BaseModel):
+    company_name: Optional[str] = None
+    target_audience: Optional[str] = None
+    tone: Optional[str] = None
+    positioning_blurb: Optional[str] = None
+
+
 class GeneratedContent(BaseModel):
     case_study_markdown: str
     linkedin_post_text: str

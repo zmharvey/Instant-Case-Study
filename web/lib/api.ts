@@ -1,4 +1,5 @@
 export type JobStatus = "pending" | "running" | "done" | "failed";
+export type JobTone = "Professional" | "Conversational" | "Technical";
 
 export interface Job {
   id: string;
@@ -9,6 +10,18 @@ export interface Job {
   error_msg: string | null;
   created_at: string;
   finished_at: string | null;
+  company_name: string | null;
+  target_audience: string | null;
+  tone: JobTone | null;
+  positioning_blurb: string | null;
+}
+
+export interface CreateJobOptions {
+  displayName?: string;
+  companyName?: string;
+  targetAudience?: string;
+  tone?: JobTone;
+  positioningBlurb?: string;
 }
 
 async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
@@ -16,11 +29,18 @@ async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   return res;
 }
 
-export async function createJob(repoUrl: string, displayName?: string): Promise<Job> {
+export async function createJob(repoUrl: string, options: CreateJobOptions = {}): Promise<Job> {
   const res = await apiFetch("jobs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ repo_url: repoUrl, display_name: displayName }),
+    body: JSON.stringify({
+      repo_url: repoUrl,
+      display_name: options.displayName,
+      company_name: options.companyName || null,
+      target_audience: options.targetAudience || null,
+      tone: options.tone || null,
+      positioning_blurb: options.positioningBlurb || null,
+    }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Unknown error" }));

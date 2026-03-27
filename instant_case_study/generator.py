@@ -1,6 +1,6 @@
 import anthropic
 
-from .models import GeneratedContent, RepoContext
+from .models import GeneratedContent, RepoContext, UserContext
 
 ARCHITECT_SYSTEM_PROMPT = """\
 You are The Architect, a senior technical writer who specializes in turning \
@@ -55,7 +55,7 @@ Analyze this software project and generate the requested marketing content.
 
 Project Name: {repo_name}
 Primary Language: {primary_language}
-
+{user_context_block}
 --- README ---
 {readme}
 
@@ -66,11 +66,17 @@ Primary Language: {primary_language}
 {file_tree}
 """
 
+_USER_CONTEXT_TEMPLATE = """\
+--- CONTENT PREFERENCES ---
+{lines}
 
-def generate(context: RepoContext) -> GeneratedContent:
+"""
+
+
+def generate(context: RepoContext, user_context: UserContext | None = None) -> GeneratedContent:
     """Run both Claude prompts and return the generated content."""
     client = anthropic.Anthropic()
-    user_prompt = _build_user_prompt(context)
+    user_prompt = _build_user_prompt(context, user_context)
 
     case_study = _call_claude(client, ARCHITECT_SYSTEM_PROMPT, user_prompt, max_tokens=2048)
     linkedin_post = _call_claude(client, GROWTH_HACKER_SYSTEM_PROMPT, user_prompt, max_tokens=512)
@@ -82,10 +88,25 @@ def generate(context: RepoContext) -> GeneratedContent:
     )
 
 
-def _build_user_prompt(context: RepoContext) -> str:
+def _build_user_prompt(context: RepoContext, user_context: UserContext | None = None) -> str:
+    user_context_block = ""
+    if user_context:
+        lines = []
+        if user_context.company_name:
+            lines.append(f"Company/Project Name: {user_context.company_name}")
+        if user_context.target_audience:
+            lines.append(f"Target Audience: {user_context.target_audience}")
+        if user_context.tone:
+            lines.append(f"Writing Tone: {user_context.tone}")
+        if user_context.positioning_blurb:
+            lines.append(f"Positioning: {user_context.positioning_blurb}")
+        if lines:
+            user_context_block = _USER_CONTEXT_TEMPLATE.format(lines="\n".join(lines))
+
     return USER_PROMPT_TEMPLATE.format(
         repo_name=context.repo_name,
         primary_language=context.primary_language or "Unknown",
+        user_context_block=user_context_block,
         readme=context.readme or "(No README found)",
         dep_file_name=context.dependency_file_name or "N/A",
         dependency_file=context.dependency_file or "(No dependency file found)",

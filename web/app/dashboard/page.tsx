@@ -1,14 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import GenerateForm from "@/components/GenerateForm";
 import JobList from "@/components/JobList";
-import { listJobs, getJob, deleteJob, type Job } from "@/lib/api";
+import { listJobs, getJob, deleteJob, createJob, type Job } from "@/lib/api";
 
 const PAGE_SIZE = 10;
 
 export default function DashboardPage() {
+  const { user } = useUser();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -61,6 +62,18 @@ export default function DashboardPage() {
     setJobs((prev) => prev.filter((j) => j.id !== jobId));
   }
 
+  async function handleRetry(job: Job) {
+    const displayName = user?.fullName ?? user?.username ?? undefined;
+    const newJob = await createJob(job.repo_url, {
+      displayName,
+      companyName: job.company_name ?? undefined,
+      targetAudience: job.target_audience ?? undefined,
+      tone: job.tone ?? undefined,
+      positioningBlurb: job.positioning_blurb ?? undefined,
+    });
+    handleJobCreated(newJob);
+  }
+
   function handlePageChange(p: number) {
     setPage(p);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -98,6 +111,7 @@ export default function DashboardPage() {
             <JobList
               jobs={jobs}
               onDelete={handleDelete}
+              onRetry={handleRetry}
               page={page}
               hasMore={hasMore}
               onPageChange={handlePageChange}
