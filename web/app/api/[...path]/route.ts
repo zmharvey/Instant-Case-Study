@@ -11,6 +11,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
   return proxyRequest(req, await params, "POST");
 }
 
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return proxyRequest(req, await params, "DELETE");
+}
+
 async function proxyRequest(
   req: NextRequest,
   params: { path: string[] },

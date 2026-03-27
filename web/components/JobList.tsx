@@ -1,46 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { listJobs, getJob, type Job } from "@/lib/api";
+import type { Job } from "@/lib/api";
 import JobCard from "./JobCard";
 
-const POLL_INTERVAL = 3000;
+interface Props {
+  jobs: Job[];
+  onDelete: (jobId: string) => Promise<void>;
+  page: number;
+  hasMore: boolean;
+  onPageChange: (page: number) => void;
+}
 
-export default function JobList({ initialJobs }: { initialJobs: Job[] }) {
-  const [jobs, setJobs] = useState<Job[]>(initialJobs);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const hasActive = jobs.some((j) => j.status === "pending" || j.status === "running");
-
-  useEffect(() => {
-    if (!hasActive) {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      return;
-    }
-
-    intervalRef.current = setInterval(async () => {
-      // Only re-fetch jobs that are still in-flight
-      const updated = await Promise.all(
-        jobs.map(async (j) => {
-          if (j.status === "pending" || j.status === "running") {
-            try {
-              return await getJob(j.id);
-            } catch {
-              return j;
-            }
-          }
-          return j;
-        })
-      );
-      setJobs(updated);
-    }, POLL_INTERVAL);
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [hasActive, jobs]);
-
-  if (jobs.length === 0) {
+export default function JobList({ jobs, onDelete, page, hasMore, onPageChange }: Props) {
+  if (jobs.length === 0 && page === 0) {
     return (
       <p className="text-slate-400 text-sm text-center py-10">
         No case studies yet. Enter a GitHub URL above to get started.
@@ -51,13 +23,28 @@ export default function JobList({ initialJobs }: { initialJobs: Job[] }) {
   return (
     <div className="flex flex-col gap-3">
       {jobs.map((job) => (
-        <JobCard key={job.id} job={job} />
+        <JobCard key={job.id} job={job} onDelete={onDelete} />
       ))}
+
+      {(page > 0 || hasMore) && (
+        <div className="flex items-center justify-between pt-2">
+          <button
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 0}
+            className="px-3 py-1.5 rounded-md bg-slate-700 hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed text-white text-sm transition-colors"
+          >
+            ← Previous
+          </button>
+          <span className="text-slate-500 text-sm">Page {page + 1}</span>
+          <button
+            onClick={() => onPageChange(page + 1)}
+            disabled={!hasMore}
+            className="px-3 py-1.5 rounded-md bg-slate-700 hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed text-white text-sm transition-colors"
+          >
+            Next →
+          </button>
+        </div>
+      )}
     </div>
   );
-}
-
-// Exported so the dashboard page can prepend a new job without a full reload
-export function prependJob(setJobs: React.Dispatch<React.SetStateAction<Job[]>>, job: Job) {
-  setJobs((prev) => [job, ...prev]);
 }

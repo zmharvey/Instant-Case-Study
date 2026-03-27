@@ -1,28 +1,73 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { UserButton } from "@clerk/nextjs";
 import GenerateForm from "@/components/GenerateForm";
 import JobList from "@/components/JobList";
-import { listJobs, type Job } from "@/lib/api";
+import { listJobs, getJob, deleteJob, type Job } from "@/lib/api";
+
+const PAGE_SIZE = 10;
 
 export default function DashboardPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    listJobs()
-      .then(setJobs)
-      .finally(() => setLoading(false));
+  const loadPage = useCallback(async (p: number) => {
+    setLoading(true);
+    try {
+      const data = await listJobs(p * PAGE_SIZE, PAGE_SIZE + 1);
+      setHasMore(data.length > PAGE_SIZE);
+      setJobs(data.slice(0, PAGE_SIZE));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    loadPage(page);
+  }, [page, loadPage]);
+
+  // Poll only the in-flight jobs on the current page
+  useEffect(() => {
+    const hasActive = jobs.some((j) => j.status === "pending" || j.status === "running");
+    if (!hasActive) return;
+
+    const id = setInterval(async () => {
+      const updated = await Promise.all(
+        jobs.map((j) =>
+          j.status === "pending" || j.status === "running"
+            ? getJob(j.id).catch(() => j)
+            : Promise.resolve(j)
+        )
+      );
+      setJobs(updated);
+    }, 3000);
+
+    return () => clearInterval(id);
+  }, [jobs]);
+
   function handleJobCreated(job: Job) {
-    setJobs((prev) => [job, ...prev]);
+    if (page === 0) {
+      setJobs((prev) => [job, ...prev.slice(0, PAGE_SIZE - 1)]);
+    } else {
+      setPage(0);
+    }
+  }
+
+  async function handleDelete(jobId: string) {
+    await deleteJob(jobId);
+    setJobs((prev) => prev.filter((j) => j.id !== jobId));
+  }
+
+  function handlePageChange(p: number) {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
     <div className="min-h-screen bg-[#0f172a]">
-      {/* Header */}
       <header className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-2 h-6 rounded-sm bg-indigo-500" />
@@ -32,7 +77,6 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-10 flex flex-col gap-8">
-        {/* Generate form */}
         <section>
           <h2 className="text-white text-xl font-semibold mb-1">New Case Study</h2>
           <p className="text-slate-400 text-sm mb-4">
@@ -41,7 +85,6 @@ export default function DashboardPage() {
           <GenerateForm onJobCreated={handleJobCreated} />
         </section>
 
-        {/* History */}
         <section>
           <h2 className="text-white text-xl font-semibold mb-4">History</h2>
           {loading ? (
@@ -52,7 +95,13 @@ export default function DashboardPage() {
               </svg>
             </div>
           ) : (
-            <JobList initialJobs={jobs} />
+            <JobList
+              jobs={jobs}
+              onDelete={handleDelete}
+              page={page}
+              hasMore={hasMore}
+              onPageChange={handlePageChange}
+            />
           )}
         </section>
       </main>

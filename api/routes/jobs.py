@@ -79,11 +79,13 @@ async def list_jobs(
     user_id: Annotated[str, Depends(require_user)],
     db: Annotated[asyncpg.Connection, Depends(get_db)],
     offset: int = 0,
+    limit: int = 11,
 ):
     rows = await db.fetch(
-        "SELECT * FROM jobs WHERE user_id=$1 ORDER BY created_at DESC LIMIT 20 OFFSET $2",
+        "SELECT * FROM jobs WHERE user_id=$1 ORDER BY created_at DESC LIMIT $3 OFFSET $2",
         user_id,
         offset,
+        limit,
     )
     return [_row_to_response(r) for r in rows]
 
@@ -100,6 +102,20 @@ async def get_job(
     if row["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="Forbidden")
     return _row_to_response(row)
+
+
+@router.delete("/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_job(
+    job_id: str,
+    user_id: Annotated[str, Depends(require_user)],
+    db: Annotated[asyncpg.Connection, Depends(get_db)],
+):
+    row = await db.fetchrow("SELECT user_id FROM jobs WHERE id=$1", job_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if row["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    await db.execute("DELETE FROM jobs WHERE id=$1", job_id)
 
 
 @router.get("/{job_id}/download/case-study")

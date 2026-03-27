@@ -1,8 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import type { Job } from "@/lib/api";
 import DownloadButtons from "./DownloadButtons";
 
 interface Props {
   job: Job;
+  onDelete: (jobId: string) => Promise<void>;
 }
 
 function StatusBadge({ status }: { status: Job["status"] }) {
@@ -48,9 +52,19 @@ function StatusBadge({ status }: { status: Job["status"] }) {
   );
 }
 
-export default function JobCard({ job }: Props) {
+export default function JobCard({ job, onDelete }: Props) {
+  const [deleting, setDeleting] = useState(false);
   const displayName = job.repo_name ?? job.repo_url.split("/").slice(-1)[0];
   const createdAt = new Date(job.created_at).toLocaleString();
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await onDelete(job.id);
+    } catch {
+      setDeleting(false);
+    }
+  }
 
   return (
     <div className="bg-[#1e293b] border border-slate-700 rounded-lg p-4 flex flex-col gap-3">
@@ -59,7 +73,26 @@ export default function JobCard({ job }: Props) {
           <p className="text-white font-medium truncate">{displayName}</p>
           <p className="text-slate-400 text-xs truncate mt-0.5">{job.repo_url}</p>
         </div>
-        <StatusBadge status={job.status} />
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <StatusBadge status={job.status} />
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            title="Delete"
+            className="p-1 text-slate-500 hover:text-red-400 disabled:opacity-40 transition-colors"
+          >
+            {deleting ? (
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       {job.status === "done" && (

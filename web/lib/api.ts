@@ -29,10 +29,15 @@ export async function createJob(repoUrl: string): Promise<Job> {
   return res.json();
 }
 
-export async function listJobs(): Promise<Job[]> {
-  const res = await apiFetch("jobs");
+export async function listJobs(offset = 0, limit = 11): Promise<Job[]> {
+  const res = await apiFetch(`jobs?offset=${offset}&limit=${limit}`);
   if (!res.ok) throw new Error("Failed to fetch jobs");
   return res.json();
+}
+
+export async function deleteJob(jobId: string): Promise<void> {
+  const res = await apiFetch(`jobs/${jobId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete job");
 }
 
 export async function getJob(jobId: string): Promise<Job> {
