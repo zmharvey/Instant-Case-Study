@@ -53,6 +53,11 @@ async function proxyRequest(
     });
   }
 
+  // 204 No Content must have no body
+  if (upstream.status === 204) {
+    return new NextResponse(null, { status: 204 });
+  }
+
   const data = await upstream.text();
   return new NextResponse(data, {
     status: upstream.status,
