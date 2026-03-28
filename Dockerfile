@@ -1,5 +1,5 @@
-# Use Microsoft's official Playwright Python image — includes all Chromium system dependencies
-FROM mcr.microsoft.com/playwright/python:v1.44.0-jammy
+# Use slim Python image instead of the heavy Playwright base (~1.8GB → ~600MB)
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -12,8 +12,9 @@ RUN pip install --no-cache-dir -e .
 COPY api/requirements.txt ./api/requirements.txt
 RUN pip install --no-cache-dir -r api/requirements.txt
 
-# Install Playwright's Chromium browser
-RUN playwright install chromium
+# Install Chromium system dependencies then the browser itself
+# playwright install-deps handles all required apt packages automatically
+RUN playwright install-deps chromium && playwright install chromium
 
 # Copy the API source
 COPY api/ ./api/
