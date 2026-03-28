@@ -3,6 +3,9 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Install git (required by gitpython) and clean up apt cache
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+
 # Install the core package (instant_case_study) and its dependencies
 COPY pyproject.toml ./
 COPY instant_case_study/ ./instant_case_study/
